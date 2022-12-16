@@ -1,4 +1,5 @@
 defmodule OfficeServerWeb.ErrorHTML do
+  @moduledoc false
   use OfficeServerWeb, :html
 
   # If you want to customize your error pages,

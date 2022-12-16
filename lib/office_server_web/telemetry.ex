@@ -1,4 +1,5 @@
 defmodule OfficeServerWeb.Telemetry do
+  @moduledoc false
   use Supervisor
   import Telemetry.Metrics
 
