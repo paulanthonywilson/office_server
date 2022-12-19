@@ -1,6 +1,8 @@
 defmodule OfficeServerWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :office_server
 
+  import FedecksServer.Socket, only: [fedecks_socket: 1]
+
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
@@ -12,6 +14,7 @@ defmodule OfficeServerWeb.Endpoint do
   ]
 
   socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  fedecks_socket(OfficeServerWeb.BoxComms.SocketHandler)
 
   # Serve at "/" the static files from "priv/static" directory.
   #

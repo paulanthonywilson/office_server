@@ -32,3 +32,4 @@ office_server-*.tar
 npm-debug.log
 /assets/node_modules/
 
+*.secret.exs
