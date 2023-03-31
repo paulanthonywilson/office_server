@@ -8,9 +8,12 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
 
   alias FedecksServer.FedecksHandler
   alias Phoenix.PubSub
+  require Logger
 
   @impl FedecksHandler
   def authenticate?(%{"username" => username, "password" => password}) do
+    IO.inspect(:authenticate)
+
     case Authentication.authenticate(username, password) do
       {:ok, _} -> true
       _ -> false
@@ -20,7 +23,7 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
   def authenticate?(_), do: false
 
   @impl FedecksHandler
-  def otp_app, do: :office_server_web
+  def otp_app, do: :office_server
 
   @impl FedecksHandler
   def handle_in(device_id, message) do
