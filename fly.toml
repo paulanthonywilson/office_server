@@ -10,3 +10,7 @@ primary_region = "lhr"
 [env]
   PHX_HOST = "office-server.fly.dev"
   PORT = "8080"
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"

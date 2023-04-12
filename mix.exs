@@ -51,7 +51,7 @@ defmodule OfficeServer.MixProject do
       {:dialyxir, "~> 1.2", only: [:dev, :test], runtime: false},
 
       #
-      {:fedecks_server, git: "git@github.com:paulanthonywilson/fedecks_server.git"}
+      {:fedecks_server, "~> 0.1"}
     ]
   end
 
