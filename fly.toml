@@ -8,9 +8,17 @@ primary_region = "lhr"
   release_command = "/app/bin/migrate"
 
 [env]
-  PHX_HOST = "office-server.fly.dev"
+  PHX_HOST = "office.merecomp.com"
   PORT = "8080"
 
 [[services]]
   internal_port = 8080
   protocol = "tcp"
+  
+  [[services.ports]]
+    handlers = ["http"]
+    port = "80"
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = "443"
