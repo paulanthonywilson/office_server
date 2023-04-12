@@ -114,6 +114,12 @@ if config_env() == :prod do
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 
   config :office_server, :auth,
-    username: System.get_env("AUTH_USERNAME"),
-    password: System.get_env("AUTH_PASSWORD")
+    username: System.fetch_env!("AUTH_USERNAME"),
+    password: System.fetch_env!("AUTH_PASSWORD")
+
+  import Config
+
+  config :office_server, OfficeServerWeb.BoxComms.SocketHandler,
+    salt: System.fetch_env!("FEDECKS_SALT")
+    secret: System.fetch_env!("FEDECKS_SECRET")
 end
