@@ -120,6 +120,6 @@ if config_env() == :prod do
   import Config
 
   config :office_server, OfficeServerWeb.BoxComms.SocketHandler,
-    salt: System.fetch_env!("FEDECKS_SALT")
+    salt: System.fetch_env!("FEDECKS_SALT"),
     secret: System.fetch_env!("FEDECKS_SECRET")
 end
