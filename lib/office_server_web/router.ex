@@ -17,7 +17,7 @@ defmodule OfficeServerWeb.Router do
 
   scope "/", OfficeServerWeb do
     pipe_through(:browser)
-
+    live "/", OfficeListLive
     live "/boxes/:device_id", OfficeLive
   end
 
