@@ -8,28 +8,18 @@ defmodule OfficeServer.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Start the Telemetry supervisor
       OfficeServerWeb.Telemetry,
-      # Start the Ecto repository
       OfficeServer.Repo,
-      # Start the PubSub system
       {Phoenix.PubSub, name: OfficeServer.PubSub},
-      # Start Finch
       {Finch, name: OfficeServer.Finch},
-      # Start the Endpoint (http/https)
-      OfficeServerWeb.Endpoint
-      # Start a worker by calling: OfficeServer.Worker.start_link(arg)
-      # {OfficeServer.Worker, arg}
+      OfficeServerWeb.Endpoint,
+      OfficeServerWeb.Presence
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: OfficeServer.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
-  # Tell Phoenix to update the endpoint configuration
-  # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
     OfficeServerWeb.Endpoint.config_change(changed, removed)
