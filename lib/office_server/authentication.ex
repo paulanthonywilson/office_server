@@ -16,11 +16,13 @@ defmodule OfficeServer.Authentication do
     end
   end
 
-  defp auth_username do
+  @spec auth_username :: String.t()
+  def auth_username do
     Keyword.fetch!(config(), :username)
   end
 
-  defp auth_password do
+  @spec auth_password :: String.t()
+  def auth_password do
     Keyword.fetch!(config(), :password)
   end
 

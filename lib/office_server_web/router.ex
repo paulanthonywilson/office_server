@@ -3,6 +3,7 @@ defmodule OfficeServerWeb.Router do
 
   pipeline :browser do
     plug(:accepts, ["html"])
+    plug(:auth)
     plug(:fetch_session)
     plug(:fetch_live_flash)
     plug(:put_root_layout, {OfficeServerWeb.Layouts, :root})
@@ -17,7 +18,18 @@ defmodule OfficeServerWeb.Router do
   scope "/", OfficeServerWeb do
     pipe_through(:browser)
 
-    live "/", OfficeLive
+    live "/boxes/:device_id", OfficeLive
+  end
+
+  if Mix.env() == :test do
+    defp auth(conn, _), do: conn
+  else
+    defp auth(conn, _opts) do
+      Plug.BasicAuth.basic_auth(conn,
+        username: OfficeServer.Authentication.auth_username(),
+        password: OfficeServer.Authentication.auth_password()
+      )
+    end
   end
 
   # Other scopes may use custom stacks.

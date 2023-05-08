@@ -7,8 +7,8 @@ defmodule OfficeServerWeb.OfficeLive do
     defstruct [:id, :timestamp, :device, :message]
   end
 
-  def mount(_params, _session, socket) do
-    socket = assign(socket, events: [])
+  def mount(%{"device_id" => device_id}, _session, socket) do
+    socket = assign(socket, events: [], device_id: device_id)
 
     Phoenix.PubSub.subscribe(OfficeServer.PubSub, "office_events")
     {:ok, socket}
@@ -16,7 +16,7 @@ defmodule OfficeServerWeb.OfficeLive do
 
   def render(assigns) do
     ~H"""
-    <p>Hello this is the Live View</p>
+    <h1 id="head"><%= @device_id %></h1>
     <.table id="events" rows={@events}>
       <:col :let={ev} label="Received"><%= ev.timestamp %></:col>
       <:col :let={ev} label="Device"><%= ev.device %></:col>
