@@ -37,11 +37,6 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
 
     test "sends message to self to track" do
       SocketHandler.connection_established("a-device-id")
-      assert_receive :track_presence
-    end
-
-    test "tracks" do
-      assert :ok = SocketHandler.handle_info("a-device-id", :track_presence)
 
       assert_receive %Phoenix.Socket.Broadcast{
         topic: topic,
@@ -54,44 +49,5 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
       assert %{connected_at: %DateTime{}, pid: pid} = metas
       assert pid == self()
     end
-
-    test "signals other sockets to shut down and reschedules tracking, if already detected" do
-      test_pid = self()
-
-      pids =
-        for _ <- 1..3 do
-          pid =
-            spawn_link(fn ->
-              receive do
-                :please_stop ->
-                  send(test_pid, {self(), :stop_request_received})
-              after
-                500 ->
-                  :ok
-              end
-            end)
-
-          OfficeServerWeb.Presence.track(pid, SocketHandler.presence_topic(), "device-123", %{
-            connected_at: DateTime.utc_now(),
-            pid: pid
-          })
-
-          pid
-        end
-
-      for _pid <- pids, do: assert_receive(%Phoenix.Socket.Broadcast{})
-
-      assert :ok = SocketHandler.handle_info("device-123", :track_presence)
-
-      for pid <- pids do
-        assert_receive {^pid, :stop_request_received}
-      end
-
-      assert_receive :track_presence
-    end
-  end
-
-  test "shutting down on request" do
-    assert {:stop, _} = SocketHandler.handle_info("device-123", :please_stop)
   end
 end

@@ -36,37 +36,14 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
   end
 
   @impl FedecksHandler
-  def connection_established(_device_id) do
-    send(self(), :track_presence)
-    :ok
-  end
-
-  @impl FedecksHandler
-  def handle_info(device_id, :track_presence) do
-    @presence_topic
-    |> OfficeServerWeb.Presence.list()
-    |> Map.get(device_id)
-    |> case do
-      nil ->
-        OfficeServerWeb.Presence.track(self(), @presence_topic, device_id, %{
-          connected_at: DateTime.utc_now(),
-          pid: self()
-        })
-
-      %{metas: metas} ->
-        # We have some zombie sockets. Shut them down now and retry in a few
-        for %{pid: pid} <- metas do
-          send(pid, :please_stop)
-        end
-
-        Process.send_after(self(), :track_presence, 50)
-    end
+  def connection_established(device_id) do
+    {:ok, _} =
+      OfficeServerWeb.Presence.track(self(), @presence_topic, device_id, %{
+        connected_at: DateTime.utc_now(),
+        pid: self()
+      })
 
     :ok
-  end
-
-  def handle_info(device_id, :please_stop) do
-    {:stop, "#{device_id} zombie socket stopping"}
   end
 
   def presence_topic, do: @presence_topic
