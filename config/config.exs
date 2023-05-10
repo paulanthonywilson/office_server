@@ -18,6 +18,7 @@ config :office_server, OfficeServerWeb.Endpoint,
     layout: false
   ],
   pubsub_server: OfficeServer.PubSub,
+  adapter: Bandit.PhoenixAdapter,
   live_view: [signing_salt: "BOEexieH"]
 
 # Configures the mailer
