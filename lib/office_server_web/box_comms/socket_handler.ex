@@ -7,18 +7,15 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
   alias OfficeServer.{Authentication, Devices}
 
   alias FedecksServer.FedecksHandler
-  alias Phoenix.PubSub
 
-  @office_events_topic "office_events"
+  import OfficeServer.AllDevicePubSub, only: [broadcast_office_event: 3]
 
   require Logger
 
   @doc """
   Subscribe to office events notifications
   """
-  def subscribe_office_events do
-    Phoenix.PubSub.subscribe(OfficeServer.PubSub, @office_events_topic)
-  end
+  defdelegate subscribe_office_events, to: OfficeServer.AllDevicePubSub
 
   @impl FedecksHandler
   def authenticate?(%{
@@ -75,13 +72,5 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
 
   def handle_info(_device_id, :please_stop) do
     {:stop, "I am probably a zombie"}
-  end
-
-  defp broadcast_office_event(type, device_id, message) do
-    PubSub.broadcast!(
-      OfficeServer.PubSub,
-      @office_events_topic,
-      {@office_events_topic, type, device_id, message}
-    )
   end
 end

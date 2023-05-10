@@ -5,6 +5,7 @@ defmodule OfficeServer.DeviceData do
   use GenServer
 
   use OfficeServer.Clock
+  alias OfficeServer.AllDevicePubSub
 
   @name __MODULE__
 
@@ -41,10 +42,7 @@ defmodule OfficeServer.DeviceData do
   @impl GenServer
   def init(name) do
     table = name |> table_name() |> :ets.new([:named_table])
-
-    # todo need to move the events pubsub
-    OfficeServerWeb.BoxComms.SocketHandler.subscribe_office_events()
-
+    AllDevicePubSub.subscribe_office_events()
     {:ok, %{table: table}}
   end
 
@@ -69,6 +67,8 @@ defmodule OfficeServer.DeviceData do
   defp handle_device_event(device, table, %{"unoccupied" => timestamp}) do
     change_occupation(device, table, :unoccupied, timestamp)
   end
+
+  defp handle_device_event(_device, _table, _event), do: :ok
 
   defp change_occupation(device, table, direction, timestamp) do
     status = {direction, timestamp}

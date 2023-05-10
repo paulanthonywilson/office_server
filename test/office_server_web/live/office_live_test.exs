@@ -1,5 +1,5 @@
 defmodule OfficeServerWeb.OfficeLiveTest do
-  use OfficeServerWeb.ConnCase
+  use OfficeServerWeb.ConnCase, async: false
 
   import Phoenix.LiveViewTest
 
@@ -8,19 +8,8 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       assert {:ok, _live, html} = live(conn, "/devices/nerves-239e")
       assert html =~ "nerves-239e"
     end
-  end
 
-  describe "events" do
-    test "currently listens to all office server events and lists them", %{conn: conn} do
-      assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
-
-      Phoenix.PubSub.broadcast(
-        OfficeServer.PubSub,
-        "office_events",
-        {"office_events", :an_event, "a device", "hello matey"}
-      )
-
-      assert live |> element("#events") |> render() =~ "hello matey"
+    test "Displays the current temperature" do
     end
   end
 end

@@ -12,7 +12,7 @@ defmodule OfficeServer.DeviceDataTest do
 
     stub(MockClock, :utc_now, fn -> @now end)
 
-    {:ok, pid} = DeviceData.start_link(name: unique_name)
+    {:ok, pid} = start_supervised({DeviceData, name: unique_name})
     allow(MockClock, self(), pid)
     {:ok, pid: pid, name: unique_name}
   end
@@ -107,6 +107,11 @@ defmodule OfficeServer.DeviceDataTest do
 
       assert_receive {:device_data, ^device, :occupation, {:unoccupied, @now}}
     end
+  end
+
+  test "other messages are ignored", %{pid: pid} do
+    device_message(pid, "nerves123", %{"movement_stop" => @now})
+    assert Process.alive?(pid)
   end
 
   defp device_message(pid, device, message) do
