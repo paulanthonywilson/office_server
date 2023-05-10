@@ -43,14 +43,14 @@ defmodule OfficeServer.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      # {:plug_cowboy, "~> 2.5"},
       {:bandit, ">= 0.7.7"},
 
       #
-      {:credo, "~> 1.6", only: [:dev, :test]},
+      {:credo, "~> 1.7", only: [:dev, :test]},
       {:recon, "~> 2.5"},
       {:dialyxir, "~> 1.2", only: [:dev, :test], runtime: false},
-
+      {:mox, "~> 1.0", only: :test},
+      {:zoneinfo, "~> 0.1.5"},
       #
       {:fedecks_server, "~> 0.1"}
     ]

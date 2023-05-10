@@ -21,6 +21,7 @@ config :office_server, OfficeServerWeb.Endpoint,
   adapter: Bandit.PhoenixAdapter,
   live_view: [signing_salt: "BOEexieH"]
 
+config :elixir, time_zone_database: Zoneinfo.TimeZoneDatabase
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
