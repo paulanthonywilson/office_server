@@ -82,6 +82,11 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
 
     test "sends message to self to track" do
       SocketHandler.connection_established("a-device-id")
+      assert_receive :track
+    end
+
+    test "tracks on receiving the :track message" do
+      SocketHandler.handle_info("a-device-id", :track)
 
       assert_receive %Phoenix.Socket.Broadcast{
         topic: topic,
@@ -93,6 +98,36 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
       assert %{"a-device-id" => %{metas: [metas]}} = joins
       assert %{connected_at: %DateTime{}, pid: pid} = metas
       assert pid == self()
+    end
+
+    test "if the device is already connected to a socket reschedules the tracking, after asking the connected sockets to stop" do
+      refs =
+        for _ <- 1..2 do
+          fn ->
+            OfficeServerWeb.Presence.track_device("double-device", ~U[2022-11-01 01:02:03Z])
+
+            receive do
+              :please_stop ->
+                :ok
+            end
+          end
+          |> spawn_link()
+          |> Process.monitor()
+        end
+
+      # Wait for the presence to be recorded
+      assert_receive %Phoenix.Socket.Broadcast{payload: %{joins: %{"double-device" => _}}}
+      assert_receive %Phoenix.Socket.Broadcast{payload: %{joins: %{"double-device" => _}}}
+
+      SocketHandler.handle_info("double-device", :track)
+
+      for ref <- refs, do: assert_receive({:DOWN, ^ref, _, _, _})
+
+      assert_receive :track
+    end
+
+    test "will stop when asked" do
+      assert {:stop, _} = SocketHandler.handle_info("a-device", :please_stop)
     end
   end
 end

@@ -30,4 +30,9 @@ defmodule OfficeServerWeb.Presence do
   def device_present?(device_id) do
     [] != get_by_key(@presence_topic, device_id)
   end
+
+  @spec device_presences(device_id :: String.t()) :: [] | map()
+  def device_presences(device_id) do
+    get_by_key(@presence_topic, device_id)
+  end
 end

@@ -54,9 +54,27 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
   end
 
   @impl FedecksHandler
-  def connection_established(device_id) do
-    {:ok, _} = OfficeServerWeb.Presence.track_device(device_id, DateTime.utc_now())
+  def connection_established(_device_id) do
+    send(self(), :track)
     :ok
+  end
+
+  @impl FedecksHandler
+  def handle_info(device_id, :track) do
+    case OfficeServerWeb.Presence.device_presences(device_id) do
+      [] ->
+        {:ok, _} = OfficeServerWeb.Presence.track_device(device_id, DateTime.utc_now())
+
+      %{metas: metas} ->
+        for %{pid: pid} <- metas, do: send(pid, :please_stop)
+        Process.send_after(self(), :track, 50)
+    end
+
+    :ok
+  end
+
+  def handle_info(_device_id, :please_stop) do
+    {:stop, "I am probably a zombie"}
   end
 
   defp broadcast_office_event(type, device_id, message) do
