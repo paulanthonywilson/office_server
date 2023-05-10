@@ -56,6 +56,17 @@ defmodule OfficeServer.Devices do
   end
 
   @doc """
+  Returns the device with the given device id
+  """
+  @spec by_device_id(String.t()) :: {:ok, Device.t()} | {:error, :notfound}
+  def by_device_id(device_id) do
+    case Repo.one(from d in Device, where: d.device_id == ^device_id) do
+      nil -> {:error, :notfound}
+      device -> {:ok, device}
+    end
+  end
+
+  @doc """
   Deletes a device.
 
   ## Examples

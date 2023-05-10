@@ -4,7 +4,7 @@ defmodule OfficeServerWeb.OfficeLive do
   alias Ecto.UUID
 
   defmodule Event do
-    defstruct [:id, :timestamp, :device, :message]
+    defstruct [:id, :timestamp, :device, :message, :type]
   end
 
   def mount(%{"device_id" => device_id}, _session, socket) do
@@ -20,19 +20,24 @@ defmodule OfficeServerWeb.OfficeLive do
     <.table id="events" rows={@events}>
       <:col :let={ev} label="Received"><%= ev.timestamp %></:col>
       <:col :let={ev} label="Device"><%= ev.device %></:col>
+      <:col :let={ev} label="Type"><%= ev.type %></:col>
       <:col :let={ev} label="Message"><%= inspect(ev.message) %></:col>
     </.table>
     """
   end
 
-  def handle_info({"office_events", device, message}, %{assigns: %{events: events}} = socket) do
+  def handle_info(
+        {"office_events", type, device, message},
+        %{assigns: %{events: events}} = socket
+      ) do
     {:noreply,
      assign(socket, :events, [
        %Event{
          id: UUID.generate(),
          timestamp: DateTime.utc_now(),
          message: message,
-         device: device
+         device: device,
+         type: type
        }
        | events
      ])}

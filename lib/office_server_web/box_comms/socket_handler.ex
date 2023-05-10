@@ -4,24 +4,42 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
   """
 
   @behaviour FedecksServer.FedecksHandler
-  alias OfficeServer.Authentication
+  alias OfficeServer.{Authentication, Devices}
 
   alias FedecksServer.FedecksHandler
   alias Phoenix.PubSub
 
-  @presence_topic to_string(__MODULE__)
+  @office_events_topic "office_events"
 
   require Logger
 
-  def subscribe_presence do
-    Phoenix.PubSub.subscribe(OfficeServer.PubSub, @presence_topic)
+  @doc """
+  Subscribe to office events notifications
+  """
+  def subscribe_office_events do
+    Phoenix.PubSub.subscribe(OfficeServer.PubSub, @office_events_topic)
   end
 
   @impl FedecksHandler
-  def authenticate?(%{"username" => username, "password" => password}) do
+  def authenticate?(%{
+        "username" => username,
+        "password" => password,
+        "fedecks-device-id" => device_id
+      }) do
     case Authentication.authenticate(username, password) do
-      {:ok, _} -> true
-      _ -> false
+      {:ok, _} ->
+        case Devices.create_device(%{device_id: device_id}) do
+          {:ok, device} ->
+            broadcast_office_event(:new_device, device_id, device)
+
+          _ ->
+            nil
+        end
+
+        true
+
+      _ ->
+        false
     end
   end
 
@@ -32,19 +50,20 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
 
   @impl FedecksHandler
   def handle_in(device_id, message) do
-    PubSub.broadcast!(OfficeServer.PubSub, "office_events", {"office_events", device_id, message})
+    broadcast_office_event(:device_msg, device_id, message)
   end
 
   @impl FedecksHandler
   def connection_established(device_id) do
-    {:ok, _} =
-      OfficeServerWeb.Presence.track(self(), @presence_topic, device_id, %{
-        connected_at: DateTime.utc_now(),
-        pid: self()
-      })
-
+    {:ok, _} = OfficeServerWeb.Presence.track_device(device_id, DateTime.utc_now())
     :ok
   end
 
-  def presence_topic, do: @presence_topic
+  defp broadcast_office_event(type, device_id, message) do
+    PubSub.broadcast!(
+      OfficeServer.PubSub,
+      @office_events_topic,
+      {@office_events_topic, type, device_id, message}
+    )
+  end
 end

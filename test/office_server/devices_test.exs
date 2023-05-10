@@ -21,6 +21,12 @@ defmodule OfficeServer.DevicesTest do
       assert Devices.get_device!(device.id) == device
     end
 
+    test "get_by_device_id returns the device with the given device_id" do
+      %{id: device_id} = device_fixture(%{device_id: "123"})
+      assert {:ok, %{id: ^device_id}} = Devices.by_device_id("123")
+      assert {:error, :notfound} = Devices.by_device_id("nope")
+    end
+
     test "create_device/1 with valid data creates a device" do
       valid_attrs = %{device_id: "some device_id"}
 
