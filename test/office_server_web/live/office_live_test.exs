@@ -17,7 +17,7 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       Phoenix.PubSub.broadcast(
         OfficeServer.PubSub,
         "office_events",
-        {"office_events", "a device", "hello matey"}
+        {"office_events", :an_event, "a device", "hello matey"}
       )
 
       assert live |> element("#events") |> render() =~ "hello matey"
