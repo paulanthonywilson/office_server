@@ -13,7 +13,8 @@ defmodule OfficeServer.Application do
       {Phoenix.PubSub, name: OfficeServer.PubSub},
       {Finch, name: OfficeServer.Finch},
       OfficeServerWeb.Endpoint,
-      OfficeServerWeb.Presence
+      OfficeServerWeb.Presence,
+      OfficeServer.RealDeviceData
     ]
 
     opts = [strategy: :one_for_one, name: OfficeServer.Supervisor]

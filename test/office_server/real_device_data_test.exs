@@ -1,6 +1,6 @@
 defmodule OfficeServer.DeviceDataTest do
   use ExUnit.Case, async: true
-  alias OfficeServer.DeviceData
+  alias OfficeServer.RealDeviceData
 
   import Mox
 
@@ -12,20 +12,20 @@ defmodule OfficeServer.DeviceDataTest do
 
     stub(MockClock, :utc_now, fn -> @now end)
 
-    {:ok, pid} = start_supervised({DeviceData, name: unique_name})
+    {:ok, pid} = start_supervised({RealDeviceData, name: unique_name})
     allow(MockClock, self(), pid)
     {:ok, pid: pid, name: unique_name}
   end
 
   describe "temperature" do
     test "unknown when no temperature has been received", %{name: name} do
-      assert :unknown == DeviceData.temperature(name, "device-123")
+      assert :unknown == RealDeviceData.temperature(name, "device-123")
     end
 
     test "returns temperature once received", %{name: name, pid: pid} do
       device_message(pid, "device-123", %{"temperature" => Decimal.new("11.5")})
 
-      assert {temp, @now} = DeviceData.temperature(name, "device-123")
+      assert {temp, @now} = RealDeviceData.temperature(name, "device-123")
       assert Decimal.eq?("11.5", temp)
     end
 
@@ -34,10 +34,10 @@ defmodule OfficeServer.DeviceDataTest do
       |> device_message("device-123", %{"temperature" => Decimal.new("11.5")})
       |> device_message("device-456", %{"temperature" => Decimal.new("18.5")})
 
-      assert {temp, @now} = DeviceData.temperature(name, "device-123")
+      assert {temp, @now} = RealDeviceData.temperature(name, "device-123")
       assert Decimal.eq?("11.5", temp)
 
-      assert {temp, @now} = DeviceData.temperature(name, "device-456")
+      assert {temp, @now} = RealDeviceData.temperature(name, "device-456")
       assert Decimal.eq?("18.5", temp)
     end
 
@@ -46,19 +46,19 @@ defmodule OfficeServer.DeviceDataTest do
       |> device_message("device-123", %{"temperature" => Decimal.new("11.5")})
       |> device_message("device-123", %{"temperature" => Decimal.new("18.5")})
 
-      assert {temp, @now} = DeviceData.temperature(name, "device-123")
+      assert {temp, @now} = RealDeviceData.temperature(name, "device-123")
       assert Decimal.eq?("18.5", temp)
     end
 
     test "new temperature is broadcast to subscribers", %{pid: pid} do
       device = "#{__MODULE__}-device"
-      DeviceData.subscribe(device)
+      RealDeviceData.subscribe(device)
 
       pid
       |> device_message(device, %{"temperature" => Decimal.new("18.5")})
       |> device_message("DeviceDataTest.other-device", %{"temperature" => Decimal.new("12.5")})
 
-      assert_receive {:device_data, ^device, :temperature, temp}
+      assert_receive {:device_data, ^device, :temperature, {temp, @now}}
       refute_receive {:device_data, "DeviceDataTest.other-device", _, _}
       assert Decimal.eq?("18.5", temp)
     end
@@ -66,21 +66,21 @@ defmodule OfficeServer.DeviceDataTest do
 
   describe "occupied messages" do
     test "when unknown", %{name: name} do
-      assert :unknown == DeviceData.occupation_status(name, "device-12")
+      assert :unknown == RealDeviceData.occupation_status(name, "device-12")
     end
 
     test "when occupied", %{name: name, pid: pid} do
       device_message(pid, "device-11", %{"occupied" => ~U[2022-11-10 10:10:10Z]})
 
       assert {:occupied, ~U[2022-11-10 10:10:10Z]} ==
-               DeviceData.occupation_status(name, "device-11")
+               RealDeviceData.occupation_status(name, "device-11")
     end
 
     test "when unoccupied", %{name: name, pid: pid} do
       device_message(pid, "device-11", %{"unoccupied" => ~U[2022-11-10 10:10:10Z]})
 
       assert {:unoccupied, ~U[2022-11-10 10:10:10Z]} ==
-               DeviceData.occupation_status(name, "device-11")
+               RealDeviceData.occupation_status(name, "device-11")
     end
 
     test "last occupation counts", %{name: name, pid: pid} do
@@ -90,12 +90,12 @@ defmodule OfficeServer.DeviceDataTest do
       |> device_message("device-13", %{"unoccupied" => ~U[2022-11-12 10:10:10Z]})
 
       assert {:unoccupied, ~U[2022-11-12 10:10:10Z]} ==
-               DeviceData.occupation_status(name, "device-13")
+               RealDeviceData.occupation_status(name, "device-13")
     end
 
     test "occupation status is broadcast", %{pid: pid} do
       device = "#{__MODULE__}-device"
-      DeviceData.subscribe(device)
+      RealDeviceData.subscribe(device)
 
       pid
       |> device_message(device, %{"occupied" => @now})
@@ -112,10 +112,13 @@ defmodule OfficeServer.DeviceDataTest do
   test "other messages are ignored", %{pid: pid} do
     device_message(pid, "nerves123", %{"movement_stop" => @now})
     assert Process.alive?(pid)
+
+    device_message(pid, "nerves123", %{}, :other_message)
+    assert Process.alive?(pid)
   end
 
-  defp device_message(pid, device, message) do
-    send(pid, {"office_events", :device_message, device, message})
+  defp device_message(pid, device, message, type \\ :device_msg) do
+    send(pid, {"office_events", type, device, message})
 
     :sys.get_state(pid)
     pid

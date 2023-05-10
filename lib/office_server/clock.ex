@@ -3,7 +3,7 @@ defmodule OfficeServer.Clock do
   Testing seam for the current time
   """
 
-  @callback utc_now :: DateTime.utc_now()
+  @callback utc_now :: DateTime.t()
 
   defmacro __using__(_) do
     implementation =

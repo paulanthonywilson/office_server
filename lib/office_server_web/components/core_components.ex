@@ -505,7 +505,7 @@ defmodule OfficeServerWeb.CoreComponents do
       <dl class="-my-4 divide-y divide-zinc-100">
         <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
           <dt class="w-1/4 flex-none text-zinc-500"><%= item.title %></dt>
-          <dd class="text-zinc-700"><%= render_slot(item) %></dd>
+          <dd class="text-zinc-700" data-title={item.title}><%= render_slot(item) %></dd>
         </div>
       </dl>
     </div>
