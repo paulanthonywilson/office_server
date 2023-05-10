@@ -23,9 +23,9 @@ defmodule OfficeServerWeb.OfficeListLive do
     <.table
       id="devices"
       rows={@streams.devices}
-      row_click={fn {id, _} -> JS.navigate(~p"/devices/#{id}") end}
+      row_click={fn {_id, device} -> JS.navigate(~p"/devices/#{device.id}") end}
     >
-      <:col :let={{id, _device}} label="Device"><%= id %></:col>
+      <:col :let={{id, device}} label="Device"><%= device.id %></:col>
       <:col :let={{_id, device}} label=""><.presence present?={device.present?} /></:col>
     </.table>
     """
