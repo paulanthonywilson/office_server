@@ -5,6 +5,7 @@ defmodule OfficeServer.RealDeviceData do
   use GenServer
 
   use OfficeServer.Clock
+  require Logger
 
   alias OfficeServer.{AllDevicePubSub, DeviceData}
   @behaviour DeviceData
@@ -48,6 +49,7 @@ defmodule OfficeServer.RealDeviceData do
   def init(name) do
     table = name |> table_name() |> :ets.new([:named_table])
     AllDevicePubSub.subscribe_office_events()
+
     {:ok, %{table: table}}
   end
 
@@ -60,7 +62,8 @@ defmodule OfficeServer.RealDeviceData do
     {:noreply, state}
   end
 
-  def handle_info(_msg, state) do
+  def handle_info(msg, state) do
+    Logger.debug(fn -> "Unexpected message in DeviceData.handle_info/3: #{inspect(msg)}" end)
     {:noreply, state}
   end
 

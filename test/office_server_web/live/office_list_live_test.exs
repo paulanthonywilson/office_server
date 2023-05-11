@@ -34,8 +34,6 @@ defmodule OfficeServerWeb.OfficeListLiveTest do
   end
 
   test "updates connected when leaves", %{conn: conn} do
-    OfficeServerWeb.Presence.track_device("device-1", ~U[2023-04-01 12:11:00Z])
-
     assert {:ok, %{pid: pid} = live, _html} = live(conn, "/")
 
     send(pid, %Phoenix.Socket.Broadcast{

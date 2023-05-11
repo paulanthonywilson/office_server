@@ -7,15 +7,15 @@ defmodule OfficeServer.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      OfficeServerWeb.Telemetry,
-      OfficeServer.Repo,
-      {Phoenix.PubSub, name: OfficeServer.PubSub},
-      {Finch, name: OfficeServer.Finch},
-      OfficeServerWeb.Endpoint,
-      OfficeServerWeb.Presence,
-      OfficeServer.RealDeviceData
-    ]
+    children =
+      [
+        OfficeServerWeb.Telemetry,
+        OfficeServer.Repo,
+        {Phoenix.PubSub, name: OfficeServer.PubSub},
+        {Finch, name: OfficeServer.Finch},
+        OfficeServerWeb.Endpoint,
+        OfficeServerWeb.Presence
+      ] ++ env_deps()
 
     opts = [strategy: :one_for_one, name: OfficeServer.Supervisor]
     Supervisor.start_link(children, opts)
@@ -25,5 +25,9 @@ defmodule OfficeServer.Application do
   def config_change(changed, _new, removed) do
     OfficeServerWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp env_deps do
+    if OfficeServer.CompilationEnv.testing?(), do: [], else: [OfficeServer.RealDeviceData]
   end
 end

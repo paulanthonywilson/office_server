@@ -20,6 +20,7 @@ defmodule OfficeServerWeb.OfficeLiveTest do
   setup do
     set_mox_global()
     stub_with(MockDeviceData, StubDeviceData)
+
     :ok
   end
 
@@ -96,12 +97,31 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       assert element_text(live, "dd[data-title='Last temperature reading']") =~
                "07:07:08 05 Jul 2023 BST"
     end
+
+    test "Shows present if present", %{conn: conn} do
+      on_exit(&TearDownPresence.tear_down/0)
+      OfficeServerWeb.Presence.track_device("nerves-239e", ~U[2023-01-01 02:03:04Z])
+
+      assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
+
+      assert element_text(live, "dd[data-title='Connected']") =~
+               "Established 02:03:04 01 Jan 2023 GMT"
+    end
+
+    test "Shows unconnected if no present", %{conn: conn} do
+      assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
+
+      assert element_text(live, "dd[data-title='Connected']") =~ "No"
+    end
   end
 
   describe "updating" do
-    test "temperature", %{conn: conn} do
+    setup %{conn: conn} do
       assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
+      {:ok, live: live}
+    end
 
+    test "temperature", %{live: live} do
       send_device_event(live, :temperature, {Decimal.new("23.11"), ~U[2023-11-01 14:10:00Z]})
 
       assert element_text(live, "dd[data-title='Last temperature reading']") =~
@@ -110,9 +130,7 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       assert element_text(live, "dd[data-title='Temperature']") =~ "23.1"
     end
 
-    test "occupancy", %{conn: conn} do
-      assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
-
+    test "occupancy", %{live: live} do
       send_device_event(live, :occupation, {:occupied, ~U[2023-03-01 10:00:00Z]})
 
       assert element_text(live, "dd[data-title='Occupation']") =~ "Occupied"
@@ -122,6 +140,35 @@ defmodule OfficeServerWeb.OfficeLiveTest do
 
       assert element_text(live, "dd[data-title='Occupation']") =~ "Vacant"
       assert element_text(live, "dd[data-title='Vacancy time']") =~ "11:00:00 01 Mar 2023 GMT"
+    end
+
+    test "presence", %{live: %{pid: pid} = live} do
+      send(pid, %Phoenix.Socket.Broadcast{
+        topic: "Elixir.OfficeServerWeb.Presence",
+        event: "presence_diff",
+        payload: %{
+          joins: %{"nerves-239e" => %{metas: [%{connected_at: ~U[2023-05-11 15:13:40.891441Z]}]}},
+          leaves: %{}
+        }
+      })
+
+      :sys.get_state(pid)
+
+      assert element_text(live, "dd[data-title='Connected']") =~
+               "Established 16:13:40 11 May 2023 BST"
+
+      send(pid, %Phoenix.Socket.Broadcast{
+        topic: "Elixir.OfficeServerWeb.Presence",
+        event: "presence_diff",
+        payload: %{
+          joins: %{},
+          leaves: %{"nerves-239e" => %{metas: [%{connected_at: ~U[2023-05-11 15:13:40.891441Z]}]}}
+        }
+      })
+
+      :sys.get_state(pid)
+
+      assert element_text(live, "dd[data-title='Connected']") =~ "No"
     end
   end
 

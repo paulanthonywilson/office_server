@@ -4,6 +4,12 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
   alias OfficeServer.Devices
   alias OfficeServerWeb.BoxComms.SocketHandler
 
+  setup do
+    Mox.set_mox_global()
+    Mox.stub(MockClock, :utc_now, fn -> DateTime.utc_now() end)
+    :ok
+  end
+
   describe "authenticates" do
     test "checks the authentication" do
       assert SocketHandler.authenticate?(%{
@@ -70,12 +76,7 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
     setup do
       OfficeServerWeb.Presence.subscribe_presence()
 
-      on_exit(fn ->
-        for pid <- OfficeServerWeb.Presence.fetchers_pids() do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}, 1000
-        end
-      end)
+      on_exit(&TearDownPresence.tear_down/0)
 
       :ok
     end
