@@ -51,7 +51,8 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
   end
 
   @impl FedecksHandler
-  def connection_established(_device_id) do
+  def connection_established(device_id) do
+    Phoenix.PubSub.subscribe(OfficeServer.PubSub, downstream_events_topic(device_id))
     send(self(), :track)
     :ok
   end
@@ -70,7 +71,23 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
     :ok
   end
 
+  def handle_info(_device_id, {:send_downstream, message}) do
+    {:push, message}
+  end
+
   def handle_info(_device_id, :please_stop) do
     {:stop, "I am probably a zombie"}
+  end
+
+  def send_to_device(device_id, message) do
+    Phoenix.PubSub.broadcast(
+      OfficeServer.PubSub,
+      downstream_events_topic(device_id),
+      {:send_downstream, message}
+    )
+  end
+
+  defp downstream_events_topic(device_id) do
+    "#{__MODULE__}.downstream.#{device_id}"
   end
 end

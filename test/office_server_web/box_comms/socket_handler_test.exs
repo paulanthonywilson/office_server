@@ -131,4 +131,23 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
       assert {:stop, _} = SocketHandler.handle_info("a-device", :please_stop)
     end
   end
+
+  describe "sending downstream messages for device" do
+    test ": subscribes on connect" do
+      SocketHandler.connection_established("my-device")
+      SocketHandler.send_to_device("my-device", {"discount", "tents"})
+      assert_receive {:send_downstream, {"discount", "tents"}}
+    end
+
+    test ": only subscribes for device" do
+      SocketHandler.connection_established("my-device")
+      SocketHandler.send_to_device("another-device", {"discount", "tents"})
+      refute_receive {:send_downstream, _}
+    end
+
+    test "will send the message downstream" do
+      assert {:push, "some message"} ==
+               SocketHandler.handle_info("device123", {:send_downstream, "some message"})
+    end
+  end
 end
