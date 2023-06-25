@@ -53,10 +53,12 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
   end
 
   @impl FedecksHandler
-  def connection_established(device_id) do
+  def connection_established(device_id, send_occupation_status_after \\ 500) do
     Phoenix.PubSub.subscribe(OfficeServer.PubSub, downstream_events_topic(device_id))
     send(self(), :track)
-    send(self(), :send_occupation_status)
+
+    # delay sending the occupation status a short while so it does not get mixed up with the upgrade response
+    Process.send_after(self(), :send_occupation_status, send_occupation_status_after)
     :ok
   end
 

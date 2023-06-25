@@ -78,7 +78,7 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
 
   describe "sending occupation status on connection" do
     test "sends message to self to send occupation status" do
-      SocketHandler.connection_established("a-device-id")
+      SocketHandler.connection_established("a-device-id", 1)
       assert_receive :send_occupation_status
     end
 
