@@ -37,8 +37,8 @@ defmodule OfficeServer.RealDeviceData do
     |> table_name()
     |> :ets.lookup({device, key})
     |> case do
-      [{{^device, ^key}, {temperature, time}}] ->
-        {temperature, time}
+      [{{^device, ^key}, {info, time}}] ->
+        {info, time}
 
       _ ->
         :unknown

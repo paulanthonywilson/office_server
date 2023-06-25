@@ -1,4 +1,5 @@
 defmodule TearDownPresence do
+  @moduledoc false
   def tear_down do
     for pid <- OfficeServerWeb.Presence.fetchers_pids() do
       ref = Process.monitor(pid)

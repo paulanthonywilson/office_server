@@ -10,6 +10,10 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
     :ok
   end
 
+  import Mox
+
+  setup :verify_on_exit!
+
   describe "authenticates" do
     test "checks the authentication" do
       assert SocketHandler.authenticate?(%{
@@ -70,6 +74,31 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
     SocketHandler.handle_in("device-123", %{"temperature" => "14.5"})
 
     assert_receive {"office_events", :device_msg, "device-123", %{"temperature" => "14.5"}}
+  end
+
+  describe "sending occupation status on connection" do
+    test "sends message to self to send occupation status" do
+      SocketHandler.connection_established("a-device-id")
+      assert_receive :send_occupation_status
+    end
+
+    test "sends unknown no occupation status if it  no present" do
+      expect(MockDeviceData, :occupation_status, fn "device-id" ->
+        :unknown
+      end)
+
+      assert {:push, {:occupation_status, :unknown}} ==
+               SocketHandler.handle_info("device-id", :send_occupation_status)
+    end
+
+    test 'sends occupation status if it is known' do
+      expect(MockDeviceData, :occupation_status, fn "device-id" ->
+        {:occupied, ~U[2023-07-01 12:13:14Z]}
+      end)
+
+      assert {:push, {:occupation_status, {:occupied, ~U[2023-07-01 12:13:14Z]}}} ==
+               SocketHandler.handle_info("device-id", :send_occupation_status)
+    end
   end
 
   describe "presence" do

@@ -1,4 +1,5 @@
 defmodule OfficeServer.Devices.Device do
+  @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -8,6 +8,8 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
 
   alias FedecksServer.FedecksHandler
 
+  use OfficeServer.DeviceData
+
   import OfficeServer.AllDevicePubSub, only: [broadcast_office_event: 3]
 
   require Logger
@@ -54,6 +56,7 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
   def connection_established(device_id) do
     Phoenix.PubSub.subscribe(OfficeServer.PubSub, downstream_events_topic(device_id))
     send(self(), :track)
+    send(self(), :send_occupation_status)
     :ok
   end
 
@@ -77,6 +80,10 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
 
   def handle_info(_device_id, :please_stop) do
     {:stop, "I am probably a zombie"}
+  end
+
+  def handle_info(device_id, :send_occupation_status) do
+    {:push, {:occupation_status, DeviceData.occupation_status(device_id)}}
   end
 
   def send_to_device(device_id, message) do

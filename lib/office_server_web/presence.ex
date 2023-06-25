@@ -1,4 +1,7 @@
 defmodule OfficeServerWeb.Presence do
+  @moduledoc """
+  Tracks device presence using the (presumed unique) device id.
+  """
   use Phoenix.Presence, otp_app: :office_server, pubsub_server: OfficeServer.PubSub
 
   @presence_topic to_string(__MODULE__)
