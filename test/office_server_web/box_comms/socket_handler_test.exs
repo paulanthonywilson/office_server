@@ -82,7 +82,7 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
       assert_receive :send_occupation_status
     end
 
-    test "sends unknown no occupation status if it  no present" do
+    test "sends unknown no occupation status if it is not known" do
       expect(MockDeviceData, :occupation_status, fn "device-id" ->
         :unknown
       end)
