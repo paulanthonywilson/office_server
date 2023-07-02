@@ -4,6 +4,8 @@ defmodule OfficeServerWeb.OfficeLiveTest do
   import Phoenix.LiveViewTest
   import Mox
 
+  alias OfficeServerWeb.BrowserImage.DeviceToken
+
   defmodule StubDeviceData do
     @behaviour OfficeServer.DeviceData
 
@@ -112,6 +114,21 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
 
       assert element_text(live, "dd[data-title='Connected']") =~ "No"
+    end
+
+    test "has placeholder image for camera images", %{conn: conn} do
+      assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
+      image = element(live, "img#cam_img")
+      assert has_element?(image)
+
+      assert {:ok, [{"img", attributes, _}]} = image |> render() |> Floki.parse_document()
+
+      assert {_, token} = List.keyfind(attributes, "data-image-token", 0)
+      assert {_, "ws://localhost:4002/images/"} = List.keyfind(attributes, "data-ws-url", 0)
+
+      assert {:ok, "nerves-239e"} = DeviceToken.from_token(token)
+
+      assert {_, "ImageHook"} = List.keyfind(attributes, "phx-hook", 0)
     end
   end
 

@@ -14,6 +14,7 @@ defmodule OfficeServerWeb.Endpoint do
   ]
 
   socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  socket "/images/:token", OfficeServerWeb.BrowserImage.BrowserImageSocket
   fedecks_socket(OfficeServerWeb.BoxComms.SocketHandler)
 
   # Serve at "/" the static files from "priv/static" directory.

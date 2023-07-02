@@ -2,6 +2,8 @@ defmodule OfficeServerWeb.OfficeLive do
   use OfficeServerWeb, :live_view
 
   use OfficeServer.DeviceData
+  alias OfficeServerWeb.BrowserImage
+  alias OfficeServerWeb.BrowserImage.DeviceToken
   require Logger
 
   def mount(%{"device_id" => device_id}, _session, socket) do
@@ -11,6 +13,8 @@ defmodule OfficeServerWeb.OfficeLive do
       |> assign(:temperature, DeviceData.temperature(device_id))
       |> assign_occupation(DeviceData.occupation_status(device_id))
       |> assign_connected(device_id)
+      |> assign(:image_token, DeviceToken.to_token(device_id))
+      |> assign(:ws_url, BrowserImage.base_ws_url())
 
     if connected?(socket) do
       DeviceData.subscribe(device_id)
@@ -20,22 +24,35 @@ defmodule OfficeServerWeb.OfficeLive do
     {:ok, socket}
   end
 
+  @spec render(any) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
     ~H"""
     <h1 id="head"><%= @device_id %></h1>
-    <.list>
-      <:item title="Connected"><.connected connected_at={@connected_at} /></:item>
-      <:item title="Temperature"><.temperature temperature={@temperature} /></:item>
-      <:item title="Last temperature reading">
-        <.temperature_timestamp temperature={@temperature} />
-      </:item>
-      <:item title="Occupation">
-        <.occupation occupation={@occupation} />
-      </:item>
-      <:item title={@occupation_timestamp_title}>
-        <.occupation_timestamp occupation={@occupation} />
-      </:item>
-    </.list>
+    <div class="flex flex-row">
+      <div class="grid cols-1 gap-1">
+        <.list>
+          <:item title="Connected"><.connected connected_at={@connected_at} /></:item>
+          <:item title="Temperature"><.temperature temperature={@temperature} /></:item>
+          <:item title="Last temperature reading">
+            <.temperature_timestamp temperature={@temperature} />
+          </:item>
+          <:item title="Occupation">
+            <.occupation occupation={@occupation} />
+          </:item>
+          <:item title={@occupation_timestamp_title}>
+            <.occupation_timestamp occupation={@occupation} />
+          </:item>
+        </.list>
+      </div>
+    </div>
+    <div class="flex flex-row">
+      <div class="grid cols-1 gap-4 ">&nbsp;</div>
+    </div>
+    <div class="flex flex-row">
+      <div class="grid cols-1 gap-4">
+        <img id="cam_img" data-image-token={@image_token} data-ws-url={@ws_url} phx-hook="ImageHook" />
+      </div>
+    </div>
     """
   end
 
