@@ -189,6 +189,25 @@ defmodule OfficeServerWeb.OfficeLiveTest do
     end
   end
 
+  describe "start camera" do
+    setup %{conn: conn} do
+      assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
+      cam_button = element(live, "#1mincam")
+      assert has_element?(cam_button)
+      {:ok, live: live, cam_button: cam_button}
+    end
+
+    test "sends message to start camera", %{cam_button: cam_button} do
+      Phoenix.PubSub.subscribe(
+        OfficeServer.PubSub,
+        "#{OfficeServerWeb.BoxComms.SocketHandler}.downstream.nerves-239e"
+      )
+
+      render_click(cam_button)
+      assert_receive {:send_downstream, "one-minute-cam"}
+    end
+  end
+
   defp send_device_event(%{pid: pid}, type, event) do
     send(pid, {:device_data, "nerves-239e", type, event})
     :sys.get_state(pid)

@@ -1,9 +1,12 @@
 defmodule OfficeServerWeb.OfficeLive do
+  alias OfficeServerWeb.BoxComms
   use OfficeServerWeb, :live_view
 
   use OfficeServer.DeviceData
   alias OfficeServerWeb.BrowserImage
   alias OfficeServerWeb.BrowserImage.DeviceToken
+
+  alias BoxComms.SocketHandler
   require Logger
 
   def mount(%{"device_id" => device_id}, _session, socket) do
@@ -46,7 +49,7 @@ defmodule OfficeServerWeb.OfficeLive do
       </div>
     </div>
     <div class="flex flex-row">
-      <div class="grid cols-1 gap-4 ">&nbsp;</div>
+      <.button id="1mincam" class="ml-2 my-6" phx-click="one-minute-cam">One minute camera</.button>
     </div>
     <div class="flex flex-row">
       <div class="grid cols-1 gap-4">
@@ -54,6 +57,12 @@ defmodule OfficeServerWeb.OfficeLive do
       </div>
     </div>
     """
+  end
+
+  def handle_event("one-minute-cam", _, socket) do
+    %{assigns: %{device_id: device_id}} = socket
+    SocketHandler.send_to_device(device_id, "one-minute-cam")
+    {:noreply, socket}
   end
 
   def handle_info({:device_data, _device, :temperature, temperature}, socket) do
