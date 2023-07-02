@@ -44,7 +44,7 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
       assert element_text(live, "dd[data-title='Temperature']") =~ "-"
 
-      assert element_text(live, "dd[data-title='Last temperature reading']") =~ "-"
+      assert element_text(live, "dd[data-title='Last read']") =~ "-"
 
       assert element_text(live, "dd[data-title='Occupation']") =~ "-"
       assert element_text(live, "dd[data-title='Occupancy time']") =~ "-"
@@ -58,7 +58,7 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
       assert element_text(live, "dd[data-title='Temperature']") =~ "21.3"
 
-      assert element_text(live, "dd[data-title='Last temperature reading']") =~
+      assert element_text(live, "dd[data-title='Last read']") =~
                "06:07:08 05 Feb 2023"
     end
 
@@ -96,7 +96,7 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
       assert element_text(live, "dd[data-title='Occupancy time']") =~ "12:12:13 03 Jul 2023 BST"
 
-      assert element_text(live, "dd[data-title='Last temperature reading']") =~
+      assert element_text(live, "dd[data-title='Last read']") =~
                "07:07:08 05 Jul 2023 BST"
     end
 
@@ -107,7 +107,7 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       assert {:ok, live, _html} = live(conn, "/devices/nerves-239e")
 
       assert element_text(live, "dd[data-title='Connected']") =~
-               "Established 02:03:04 01 Jan 2023 GMT"
+               "02:03:04 01 Jan 2023 GMT"
     end
 
     test "Shows unconnected if no present", %{conn: conn} do
@@ -141,7 +141,7 @@ defmodule OfficeServerWeb.OfficeLiveTest do
     test "temperature", %{live: live} do
       send_device_event(live, :temperature, {Decimal.new("23.11"), ~U[2023-11-01 14:10:00Z]})
 
-      assert element_text(live, "dd[data-title='Last temperature reading']") =~
+      assert element_text(live, "dd[data-title='Last read']") =~
                "14:10:00 01 Nov 2023 GMT"
 
       assert element_text(live, "dd[data-title='Temperature']") =~ "23.1"
@@ -172,7 +172,7 @@ defmodule OfficeServerWeb.OfficeLiveTest do
       :sys.get_state(pid)
 
       assert element_text(live, "dd[data-title='Connected']") =~
-               "Established 16:13:40 11 May 2023 BST"
+               "16:13:40 11 May 2023 BST"
 
       send(pid, %Phoenix.Socket.Broadcast{
         topic: "Elixir.OfficeServerWeb.Presence",
@@ -216,6 +216,9 @@ defmodule OfficeServerWeb.OfficeLiveTest do
   defp element_text(live, selector) do
     live
     |> element(selector)
+    |> tap(fn el ->
+      assert has_element?(el)
+    end)
     |> render()
     |> Floki.parse_document!()
     |> Floki.text()

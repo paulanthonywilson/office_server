@@ -36,7 +36,7 @@ defmodule OfficeServerWeb.OfficeLive do
         <.list>
           <:item title="Connected"><.connected connected_at={@connected_at} /></:item>
           <:item title="Temperature"><.temperature temperature={@temperature} /></:item>
-          <:item title="Last temperature reading">
+          <:item title="Last read">
             <.temperature_timestamp temperature={@temperature} />
           </:item>
           <:item title="Occupation">
@@ -213,7 +213,7 @@ defmodule OfficeServerWeb.OfficeLive do
 
   defp connected(assigns) do
     ~H"""
-    <span class="text-green-500">Established <%= display_date_time(@connected_at) %></span>
+    <span class="text-green-500"><%= display_date_time(@connected_at) %></span>
     """
   end
 
