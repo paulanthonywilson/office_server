@@ -4,20 +4,23 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
   """
 
   @behaviour FedecksServer.FedecksHandler
-  alias OfficeServer.{Authentication, Devices}
+  alias OfficeServer.{AllDevicePubSub, Authentication, Devices}
 
   alias FedecksServer.FedecksHandler
 
   use OfficeServer.DeviceData
-
-  import OfficeServer.AllDevicePubSub, only: [broadcast_office_event: 3]
 
   require Logger
 
   @doc """
   Subscribe to office events notifications
   """
-  defdelegate subscribe_office_events, to: OfficeServer.AllDevicePubSub
+  defdelegate subscribe_office_events, to: AllDevicePubSub
+
+  @doc """
+  Receive images from the specified device
+  """
+  defdelegate subscribe_to_images(device_id), to: AllDevicePubSub
 
   @impl FedecksHandler
   def authenticate?(%{
@@ -29,7 +32,7 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
       {:ok, _} ->
         case Devices.create_device(%{device_id: device_id}) do
           {:ok, device} ->
-            broadcast_office_event(:new_device, device_id, device)
+            AllDevicePubSub.broadcast_office_event(:new_device, device_id, device)
 
           _ ->
             nil
@@ -49,7 +52,16 @@ defmodule OfficeServerWeb.BoxComms.SocketHandler do
 
   @impl FedecksHandler
   def handle_in(device_id, message) do
-    broadcast_office_event(:device_msg, device_id, message)
+    AllDevicePubSub.broadcast_office_event(:device_msg, device_id, message)
+  end
+
+  @impl FedecksHandler
+  def handle_raw_in(device_id, <<0xFF, 0xD8>> <> _ = message) do
+    AllDevicePubSub.broadcast_image(device_id, message)
+  end
+
+  def handle_raw_in(_device_id, _message) do
+    :ok
   end
 
   @impl FedecksHandler

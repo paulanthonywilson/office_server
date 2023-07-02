@@ -120,4 +120,8 @@ if config_env() == :prod do
   config :office_server, OfficeServerWeb.BoxComms.SocketHandler,
     salt: System.fetch_env!("FEDECKS_SALT"),
     secret: System.fetch_env!("FEDECKS_SECRET")
+
+  config :office_server, OfficeServerWeb.BrowserImage.DeviceToken,
+    salt: System.fetch_env!("DEVICE_SALT"),
+    secret: System.fetch_env!("DEVICE_SECRET")
 end

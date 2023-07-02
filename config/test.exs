@@ -33,3 +33,7 @@ config :logger, level: :warning
 config :phoenix, :plug_init_mode, :runtime
 
 config :office_server, :auth, username: "test_user", password: "test_password"
+
+config :office_server, OfficeServerWeb.BrowserImage.DeviceToken,
+  salt: "NU14g1dmGVXk3tQxWvwINgd38638V+cctSbz59ubnNuYPf+RHOrGOcBzzki2NSX3",
+  secret: "Cb8/u4FZ3M1hSXC2h5FqmWRYyClzkajswjm2AhhrMX2XN1zYSR4usWPHPFRp0kEq"

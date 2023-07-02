@@ -76,6 +76,23 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
     assert_receive {"office_events", :device_msg, "device-123", %{"temperature" => "14.5"}}
   end
 
+  describe "handle_raw_in " do
+    setup do
+      SocketHandler.subscribe_to_images("device-123")
+    end
+
+    test "publishes jpegs to the images topic" do
+      SocketHandler.handle_raw_in("device-123", <<0xFF, 0xD8>> <> "looks like a jpeg")
+
+      assert_receive {:image, "device-123", <<0xFF, 0xD8>> <> "looks like a jpeg"}
+    end
+
+    test "does not publish raw messages that do not look like jpegs to the images topic" do
+      SocketHandler.handle_raw_in("device-123", "does not look like a jpeg")
+      refute_receive {:image, "device-123", _}
+    end
+  end
+
   describe "sending occupation status on connection" do
     test "sends message to self to send occupation status" do
       SocketHandler.connection_established("a-device-id", 1)
@@ -91,7 +108,7 @@ defmodule OfficeServerWeb.BoxComms.SocketHandlerTest do
                SocketHandler.handle_info("device-id", :send_occupation_status)
     end
 
-    test 'sends occupation status if it is known' do
+    test ~c"sends occupation status if it is known" do
       expect(MockDeviceData, :occupation_status, fn "device-id" ->
         {:occupied, ~U[2023-07-01 12:13:14Z]}
       end)
