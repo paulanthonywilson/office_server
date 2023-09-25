@@ -16,9 +16,12 @@ defmodule OfficeServer.MixProject do
   def application do
     [
       mod: {OfficeServer.Application, []},
-      extra_applications: [:logger, :runtime_tools, :observer, :wx]
+      extra_applications: [:logger, :runtime_tools] ++ extra_applications(Mix.env())
     ]
   end
+
+  defp extra_applications(:prod), do: []
+  defp extra_applications(_), do: [:observer, :wx]
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
