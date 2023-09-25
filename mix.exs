@@ -16,7 +16,7 @@ defmodule OfficeServer.MixProject do
   def application do
     [
       mod: {OfficeServer.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :observer, :wx]
     ]
   end
 
@@ -48,7 +48,7 @@ defmodule OfficeServer.MixProject do
       #
       {:credo, "~> 1.7", only: [:dev, :test]},
       {:recon, "~> 2.5"},
-      {:dialyxir, "~> 1.2", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4.1", only: [:dev, :test], runtime: false},
       {:mox, "~> 1.0", only: :test},
       {:zoneinfo, "~> 0.1.5"},
       #

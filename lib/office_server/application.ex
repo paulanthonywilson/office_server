@@ -28,6 +28,10 @@ defmodule OfficeServer.Application do
   end
 
   defp env_deps do
-    if OfficeServer.CompilationEnv.testing?(), do: [], else: [OfficeServer.RealDeviceData]
+    if OfficeServer.CompilationEnv.testing?() do
+      []
+    else
+      [OfficeServer.RealDeviceData, OfficeServer.Monitoring.MonitoringSupervisor]
+    end
   end
 end

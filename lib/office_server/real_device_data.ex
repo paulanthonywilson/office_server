@@ -69,9 +69,7 @@ defmodule OfficeServer.RealDeviceData do
 
   defp handle_device_event(device, table, %{"temperature" => temperature}) do
     temperature_value = {temperature, Clock.utc_now()}
-    # :ets.insert(table, {{device, :temperature}, temperature_value})
     insert_and_broadcast(device, table, :temperature, temperature_value)
-    # broadcast(device, {:device_data, device, :temperature, temperature_value})
   end
 
   defp handle_device_event(device, table, %{"occupied" => timestamp}) do
