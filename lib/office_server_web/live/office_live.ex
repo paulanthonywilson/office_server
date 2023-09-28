@@ -3,6 +3,7 @@ defmodule OfficeServerWeb.OfficeLive do
   use OfficeServerWeb, :live_view
 
   use OfficeServer.DeviceData
+  alias OfficeServer.Temperatures
   alias OfficeServerWeb.BrowserImage
   alias OfficeServerWeb.BrowserImage.DeviceToken
 
@@ -18,6 +19,7 @@ defmodule OfficeServerWeb.OfficeLive do
       |> assign_connected(device_id)
       |> assign(:image_token, DeviceToken.to_token(device_id))
       |> assign(:ws_url, BrowserImage.base_ws_url())
+      |> assign(:historic_temperatures, [])
 
     if connected?(socket) do
       DeviceData.subscribe(device_id)
@@ -27,36 +29,16 @@ defmodule OfficeServerWeb.OfficeLive do
     {:ok, socket}
   end
 
-  @spec render(any) :: Phoenix.LiveView.Rendered.t()
-  def render(assigns) do
-    ~H"""
-    <h1 id="head"><%= @device_id %></h1>
-    <div class="flex flex-row">
-      <div class="grid cols-1 gap-1">
-        <.list>
-          <:item title="Connected"><.connected connected_at={@connected_at} /></:item>
-          <:item title="Temperature"><.temperature temperature={@temperature} /></:item>
-          <:item title="Last read">
-            <.temperature_timestamp temperature={@temperature} />
-          </:item>
-          <:item title="Occupation">
-            <.occupation occupation={@occupation} />
-          </:item>
-          <:item title={@occupation_timestamp_title}>
-            <.occupation_timestamp occupation={@occupation} />
-          </:item>
-        </.list>
-      </div>
-    </div>
-    <div class="flex flex-row">
-      <.button id="1mincam" class="ml-2 my-6" phx-click="one-minute-cam">One minute camera</.button>
-    </div>
-    <div class="flex flex-row">
-      <div class="grid cols-1 gap-4">
-        <img id="cam_img" data-image-token={@image_token} data-ws-url={@ws_url} phx-hook="ImageHook" />
-      </div>
-    </div>
-    """
+  def handle_params(params, _url, %{assigns: %{live_action: action}} = socket) do
+    {:noreply, apply_action(socket, action, params)}
+  end
+
+  defp apply_action(socket, :temperatures, %{"device_id" => device_id} = params) do
+    assign(socket, historic_temperatures: Temperatures.device_temperatures(device_id))
+  end
+
+  defp apply_action(socket, action, _params) do
+    socket
   end
 
   def handle_event("one-minute-cam", _, socket) do
@@ -138,13 +120,21 @@ defmodule OfficeServerWeb.OfficeLive do
     assign(socket, :connected_at, connected_at)
   end
 
-  defp temperature(%{temperature: :unknown} = assigns) do
+  defp temperature(assigns) do
+    ~H"""
+    <a href="#" phx-click={JS.patch(~p"/devices/#{@device_id}/temperatures")}>
+      <.do_temperature temperature={@temperature} />
+    </a>
+    """
+  end
+
+  defp do_temperature(%{temperature: :unknown} = assigns) do
     ~H"""
     -
     """
   end
 
-  defp temperature(%{temperature: {temperature, _}} = assigns) do
+  defp do_temperature(%{temperature: {temperature, _}} = assigns) do
     temperature =
       temperature
       |> Decimal.round(1)
@@ -207,7 +197,13 @@ defmodule OfficeServerWeb.OfficeLive do
 
   defp connected(%{connected_at: nil} = assigns) do
     ~H"""
-    <span class="text-red-500">No</span>
+    <span class="text-red-500">15:11:01 28 Sep 2023 BST</span>
+    """
+
+    ~H"""
+    <span class="text-red-500">
+      Not connected &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp &nbsp; &nbsp; &nbsp;
+    </span>
     """
   end
 

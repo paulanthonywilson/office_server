@@ -1,0 +1,41 @@
+<h1 id="head"><%= @device_id %></h1>
+<div class="flex flex-row">
+  <div class="grid cols-1 gap-1">
+    <.list>
+      <:item title="Connected"><.connected connected_at={@connected_at} /></:item>
+      <:item title="Temperature">
+        <.temperature temperature={@temperature} device_id={@device_id} />
+      </:item>
+      <:item title="Last read">
+        <.temperature_timestamp temperature={@temperature} />
+      </:item>
+      <:item title="Occupation">
+        <.occupation occupation={@occupation} />
+      </:item>
+      <:item title={@occupation_timestamp_title}>
+        <.occupation_timestamp occupation={@occupation} />
+      </:item>
+    </.list>
+  </div>
+</div>
+<div class="flex flex-row">
+  <.button id="1mincam" class="ml-2 my-6" phx-click="one-minute-cam">One minute camera</.button>
+</div>
+<div class="flex flex-row">
+  <div class="grid cols-1 gap-4">
+    <img id="cam_img" data-image-token={@image_token} data-ws-url={@ws_url} phx-hook="ImageHook" />
+  </div>
+</div>
+
+<.modal
+  :if={@live_action == :temperatures}
+  id="temperature-graph"
+  show
+  on_cancel={JS.patch(~p"/devices/#{@device_id}")}
+>
+  <%= for t <- @historic_temperatures do %>
+    <p>
+      <%= inspect(t) %>
+    </p>
+  <% end %>
+</.modal>

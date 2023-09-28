@@ -19,6 +19,7 @@ defmodule OfficeServerWeb.Router do
     pipe_through(:browser)
     live "/", OfficeListLive
     live "/devices/:device_id", OfficeLive
+    live "/devices/:device_id/temperatures", OfficeLive, :temperatures
   end
 
   if Mix.env() == :test do
