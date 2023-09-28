@@ -55,7 +55,8 @@ defmodule OfficeServer.MixProject do
       {:mox, "~> 1.0", only: :test},
       {:zoneinfo, "~> 0.1.5"},
       #
-      {:fedecks_server, "~> 0.1"}
+      {:fedecks_server, "~> 0.1"},
+      {:vega_lite, "~> 0.1.8"}
     ]
   end
 

@@ -208,6 +208,21 @@ defmodule OfficeServerWeb.OfficeLiveTest do
     end
   end
 
+  # Running into this https://github.com/phoenixframework/phoenix_live_view/issues/2768
+  # describe "temperature graph modal" do
+  #   setup %{conn: conn} do
+  #     {:ok, live, _} = live(conn, "/devices/239e")
+  #     {:ok, live: live}
+  #   end
+
+  #   test "displays chart on clicking the temperature", %{live: live} do
+  #     live
+  #     |> element("#temperature")
+  #     |> render_click()
+  #     |> IO.inspect()
+  #   end
+  # end
+
   defp send_device_event(%{pid: pid}, type, event) do
     send(pid, {:device_data, "nerves-239e", type, event})
     :sys.get_state(pid)

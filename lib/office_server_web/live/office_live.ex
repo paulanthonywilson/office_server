@@ -3,7 +3,7 @@ defmodule OfficeServerWeb.OfficeLive do
   use OfficeServerWeb, :live_view
 
   use OfficeServer.DeviceData
-  alias OfficeServer.Temperatures
+  alias OfficeServer.{TemperatureCharts, Temperatures}
   alias OfficeServerWeb.BrowserImage
   alias OfficeServerWeb.BrowserImage.DeviceToken
 
@@ -19,7 +19,7 @@ defmodule OfficeServerWeb.OfficeLive do
       |> assign_connected(device_id)
       |> assign(:image_token, DeviceToken.to_token(device_id))
       |> assign(:ws_url, BrowserImage.base_ws_url())
-      |> assign(:historic_temperatures, [])
+      |> assign(:historic_temperatures, %{})
 
     if connected?(socket) do
       DeviceData.subscribe(device_id)
@@ -33,11 +33,18 @@ defmodule OfficeServerWeb.OfficeLive do
     {:noreply, apply_action(socket, action, params)}
   end
 
-  defp apply_action(socket, :temperatures, %{"device_id" => device_id} = params) do
-    assign(socket, historic_temperatures: Temperatures.device_temperatures(device_id))
+  defp apply_action(socket, :temperatures, %{"device_id" => device_id}) do
+    temperatures =
+      device_id
+      |> Temperatures.device_temperatures()
+      |> TemperatureCharts.historic_temperatures_to_vega_lite_friendly(width: 800, height: 500)
+
+    socket
+    |> assign(historic_temperatures: temperatures)
+    |> push_event("vega_lite:historic_temperatures:init", %{spec: VegaLite.to_spec(temperatures)})
   end
 
-  defp apply_action(socket, action, _params) do
+  defp apply_action(socket, _action, _params) do
     socket
   end
 
@@ -122,7 +129,7 @@ defmodule OfficeServerWeb.OfficeLive do
 
   defp temperature(assigns) do
     ~H"""
-    <a href="#" phx-click={JS.patch(~p"/devices/#{@device_id}/temperatures")}>
+    <a id="temperature" href="#" phx-click={JS.patch(~p"/devices/#{@device_id}/temperatures")}>
       <.do_temperature temperature={@temperature} />
     </a>
     """

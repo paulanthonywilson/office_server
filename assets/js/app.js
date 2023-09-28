@@ -22,7 +22,10 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import { ImageSocket } from "./image_socket.js"
-let Hooks = {};
+
+import VegaLite from "./vegalite";
+
+let Hooks = { VegaLite };
 
 Hooks.ImageHook = {
     mounted() {
@@ -31,6 +34,8 @@ Hooks.ImageHook = {
         this.socket = imageSocket;
     }
 }
+
+console.log(Hooks)
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, { hooks: Hooks, params: { _csrf_token: csrfToken } })
